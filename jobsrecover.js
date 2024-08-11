@@ -14,15 +14,41 @@ function getRandomNumber(min, max) {
 }
 
 //hacer scrapping para obtener el número de anuncios activos en facebook ads library
-async function getInnerResult(url) {
+async function getInnerResult(URI, includesDomain = false) {
   //retrazamos la siguiente petición 60 segundos para prevenir que facebook ads library nos bloquee
   await sleep(getRandomMilliseconds(60000, 75000));
   console.log("scrapping");
+  let url;
+  if (includesDomain) {
+    const domain = URI.split("q=")[1].split("&")[0];
+    console.log("domain ", domain);
+    url = `https://www.facebook.com/ads/library/?
+            active_status=active&
+            ad_type=all&
+            country=ALL&
+            q=${domain}&
+            sort_data[direction]=desc&
+            sort_data[mode]=relevancy_monthly_grouped&
+            search_type=keyword_exact_phrase&
+            media_type=all`;
+  } else {
+    //exctract fan page id from the url
+    const fanPageId = URI.split("view_all_page_id=")[1].split("&")[0];
+    url = `https://www.facebook.com/ads/library/?
+            active_status=active&
+            ad_type=all&
+            country=ALL&
+            view_all_page_id=${fanPageId}&
+            sort_data[direction]=desc&
+            sort_data[mode]=relevancy_monthly_grouped&
+            search_type=page&
+            media_type=all`;
+  }
 
-  //exctract fan page id from the url
-  const fanPageId = url.split("view_all_page_id=")[1].split("&")[0];
   try {
-    return await scrapeFanPage(fanPageId);
+    const result = await scrapeFanPage(url);
+    console.log("Active Ads count :  ", result);
+    return result;
   } catch (error) {
     return 0;
   }
@@ -70,7 +96,6 @@ async function processOffer(item) {
 
     //obtengo los anuncios activos de la fanpage
     let activeAds = await getInnerResult(item.FanPage);
-    console.log("Active ads count", activeAds);
 
     let data = {
       NumAds: activeAds,
@@ -93,8 +118,7 @@ async function processOffer(item) {
       console.log("Domain is none");
     } else {
       //obtengo los anuncios activos del Dominio
-      activeAds = await getInnerResult(item.Domain);
-      console.log("for domain active ads are: ", activeAds);
+      activeAds = await getInnerResult(item.Domain, true);
 
       data = {
         NumAds: activeAds,

@@ -8,12 +8,12 @@ const client = new ApifyClient({
   token: "apify_api_lH5bqvfiXyopIq1Aqom62R5AYq73as3a4lTg",
 });
 
-async function scrapeFanPage(page_id) {
+async function scrapeFanPage(url) {
   // Prepare Actor input
   const input = {
     startUrls: [
       {
-        url: `https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&view_all_page_id=${page_id}&sort_data[direction]=desc&sort_data[mode]=relevancy_monthly_grouped&search_type=page&media_type=all`,
+        url: url,
       },
     ],
     resultsLimit: 99999,
